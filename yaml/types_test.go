@@ -72,6 +72,36 @@ question:
   name: Jane Smith
 `,
 	},
+	{
+		Tree: List{
+			List{Scalar("one"), Scalar("two"), Scalar("three")},
+			List{Scalar("un"), Scalar("deux"), Scalar("troix")},
+			List{Scalar("ichi"), Scalar("ni"), Scalar("san")},
+		},
+		Expect: `- - one
+  - two
+  - three
+- - un
+  - deux
+  - troix
+- - ichi
+  - ni
+  - san
+`,
+	},
+	{
+		Tree: Map{
+			"yahoo":  Map{"url": Scalar("http://yahoo.com/"),  "company": Scalar("Yahoo! Inc." )},
+			"google": Map{"url": Scalar("http://google.com/"), "company": Scalar("Google, Inc.")},
+		},
+		Expect: `google:
+  company: Google, Inc.
+  url:     http://google.com/
+yahoo:
+  company: Yahoo! Inc.
+  url:     http://yahoo.com/
+`,
+	},
 }
 
 func TestString(t *testing.T) {
