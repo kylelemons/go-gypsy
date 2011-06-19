@@ -42,12 +42,14 @@ Gypsy allows arbitrary nesting of maps inside lists, lists inside of maps, and
 maps and/or lists nested inside of themselves.
 
 A map inside of a list:
+
     - name: John Smith
       age:  42
     - name: Jane Smith
       age:  45
 
 A list inside of a map:
+
     schools:
       - Meadow Glen
       - Forest Creek
@@ -57,6 +59,7 @@ A list inside of a map:
       - Andrew Keriman Memorial
 
 A list of lists:
+
     - - one
       - two
       - three
@@ -68,6 +71,7 @@ A list of lists:
       - san
 
 A map of maps
+
     google:
       company: Google, Inc.
       ticker:  GOOG
