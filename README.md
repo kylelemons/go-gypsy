@@ -12,6 +12,7 @@ Lists
 -----
 
 Gypsy understands the following to be a list:
+
     - one
     - two
     - three
@@ -25,6 +26,7 @@ Mappings
 --------
 
 Gypsy understands the following to be a mapping:
+
     key:     value
     foo:     bar
     running: away
