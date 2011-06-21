@@ -82,3 +82,52 @@ A map of maps
       company: Yahoo, Inc.
       ticker:  YHOO
       url:     http://yahoo.com/
+
+Values can also be expressed in long form (leading whitespace of the first line
+is removed from it and all subsequent lines).  In the normal (baz) case,
+newlines are treated as spaces, all indentation is removed.  In the folded case
+(bar), newlines are treated as spaces, except pairs of newlines (e.g. a blank
+line) are treated as a single newline, only the indentation level of the first
+line is removed, and newlines at the end of indented lines are preserved.  In
+the verbatim (foo) case, only the indent at the level of the first line is
+stripped.  The example:
+
+    foo: |
+      lorem ipsum dolor
+      sit amet
+    bar: >
+      lorem ipsum
+
+        dolor
+
+      sit amet
+    baz:
+      lorem ipsum
+       dolor sit amet
+       
+
+Syntax
+======
+
+The YAML subset understood by Gypsy can be expressed (loosely) in the following
+grammar (not including comments):
+
+              OBJECT = MAPPING | SEQUENCE | SCALAR .
+        SHORT-OBJECT = SHORT-MAPPING | SHORT-SEQUENCE | SHORT-SCALAR .
+                 EOL = '\n'
+
+             MAPPING = { LONG-MAPPING | SHORT-MAPPING } .
+            SEQUENCE = { LONG-SEQUENCE | SHORT-SEQUENCE } .
+              SCALAR = { LONG-SCALAR | SHORT-SCALAR } .
+
+        LONG-MAPPING = { INDENT KEY ':' OBJECT EOL } .
+       SHORT-MAPPING = '{' KEY ':' SHORT-OBJECT { ',' KEY ':' SHORT-OBJECT } '}' EOL .
+
+       LONG-SEQUENCE = { INDENT '-' OBJECT EOL } EOL .
+      SHORT-SEQUENCE = '[' SHORT-OBJECT { ',' SHORT-OBJECT } ']' EOL .
+      
+         LONG-SCALAR = ( '|' | '>' | ) EOL { INDENT SHORT-SCALAR EOL }
+        SHORT-SCALAR = { alpha | digit | punct | ' ' | '\t' } .
+
+                 KEY = { alpha | digit }
+              INDENT = { ' ' | '\t' }
