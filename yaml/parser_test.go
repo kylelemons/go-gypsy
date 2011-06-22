@@ -42,6 +42,9 @@ key3:
   subkey1: subval1
   subkey2: subval2
 key4: val4
+nested1:
+  nested2:
+    nested3: text
 `)
 	node, err := Parse(buf)
 	if err != nil {
