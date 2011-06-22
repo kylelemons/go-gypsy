@@ -4,12 +4,12 @@ import (
 	"testing"
 )
 
-var stringTests = []struct{
-	Tree Node
+var stringTests = []struct {
+	Tree   Node
 	Expect string
 }{
 	{
-		Tree: Scalar("test"),
+		Tree:   Scalar("test"),
 		Expect: `test`,
 	},
 	{
@@ -25,7 +25,7 @@ var stringTests = []struct{
 	},
 	{
 		Tree: Map{
-			"phonetic": Scalar("true"),
+			"phonetic":     Scalar("true"),
 			"organization": Scalar("Navy"),
 			"alphabet": List{
 				Scalar("Alpha"),
@@ -59,11 +59,11 @@ question:
 		Tree: List{
 			Map{
 				"name": Scalar("John Smith"),
-				"age": Scalar("42"),
+				"age":  Scalar("42"),
 			},
 			Map{
 				"name": Scalar("Jane Smith"),
-				"age": Scalar("45"),
+				"age":  Scalar("45"),
 			},
 		},
 		Expect: `- age:  42
@@ -91,7 +91,7 @@ question:
 	},
 	{
 		Tree: Map{
-			"yahoo":  Map{"url": Scalar("http://yahoo.com/"),  "company": Scalar("Yahoo! Inc." )},
+			"yahoo":  Map{"url": Scalar("http://yahoo.com/"), "company": Scalar("Yahoo! Inc.")},
 			"google": Map{"url": Scalar("http://google.com/"), "company": Scalar("Google, Inc.")},
 		},
 		Expect: `google:

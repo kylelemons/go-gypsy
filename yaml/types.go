@@ -10,13 +10,14 @@ import (
 )
 
 type Node interface {
-	Map(string) (Node,bool)
+	Map(string) (Node, bool)
 	List() []Node
 	String() string
-	write(io.Writer,int,int)
+	write(io.Writer, int, int)
 }
 
 type Map map[string]Node
+
 func (node Map) Map(key string) (val Node, ok bool) {
 	val, ok = node[key]
 	return
@@ -64,7 +65,8 @@ func (node Map) write(out io.Writer, firstind, nextind int) {
 }
 
 type List []Node
-func (node List) Map(key string) (Node,bool) { return nil, false }
+
+func (node List) Map(key string) (Node, bool) { return nil, false }
 func (node List) List() []Node {
 	return node
 }
@@ -86,9 +88,10 @@ func (node List) write(out io.Writer, firstind, nextind int) {
 }
 
 type Scalar string
-func (node Scalar) Map(_ string) (Node,bool) { return nil, false }
-func (node Scalar) List() ([]Node) { return nil }
-func (node Scalar) String() string { return string(node) }
+
+func (node Scalar) Map(_ string) (Node, bool) { return nil, false }
+func (node Scalar) List() []Node              { return nil }
+func (node Scalar) String() string            { return string(node) }
 func (node Scalar) write(out io.Writer, ind, _ int) {
 	fmt.Fprintf(out, "%s%s\n", strings.Repeat(" ", ind), string(node))
 }

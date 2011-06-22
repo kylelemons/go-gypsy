@@ -72,7 +72,7 @@ A list of lists:
       - ni
       - san
 
-A map of maps
+A map of maps:
 
     google:
       company: Google, Inc.
@@ -82,6 +82,10 @@ A map of maps
       company: Yahoo, Inc.
       ticker:  YHOO
       url:     http://yahoo.com/
+
+In the case of a map of maps, all sub-keys must be on subsequent lines and
+indented equally.  It is allowable for the first key/value to be on the same
+line if there is more than one key/value pair, but this is not recommended.
 
 Values can also be expressed in long form (leading whitespace of the first line
 is removed from it and all subsequent lines).  In the normal (baz) case,
@@ -104,7 +108,6 @@ stripped.  The example:
     baz:
       lorem ipsum
        dolor sit amet
-       
 
 Syntax
 ======

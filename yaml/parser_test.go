@@ -3,26 +3,49 @@ package yaml
 import (
 	"testing"
 	"bytes"
+	"fmt"
+
+	"runtime/debug"
 )
 
 func TestNoop(t *testing.T) {
-	buf := bytes.NewBufferString(`
-foo: fooval
-bar:
-  - blah: test
-    boo: hoo
-  - baz
-  - long
+	defer func() {
+		if r := recover(); r != nil {
+			debug.PrintStack()
+		}
+	}()
 
-    text text
-  - bazor
-  - bazes: lorem ipsum
-    ipsum: dolor sit amet
-  - sit: amet
-  - - blah
-    - blah
-  - -
-    - no
+	/*
+		buf := bytes.NewBufferString(`
+	foo: fooval
+	bar:
+	  - blah: test
+	    boo: hoo
+	  - baz
+	  - long
+
+	    text text
+	  - bazor
+	  - bazes: lorem ipsum
+	    ipsum: dolor sit amet
+	  - sit: amet
+	  - - blah
+	    - blah
+	  - -
+	    - no
+	`)
+	*/
+	buf := bytes.NewBufferString(`
+key1: val1
+key2: val2
+key3:
+  subkey1: subval1
+  subkey2: subval2
+key4: val4
 `)
-	Parse(buf)
+	node, err := Parse(buf)
+	if err != nil {
+		t.Errorf("parse: %s", err)
+	}
+	fmt.Println(node)
 }
