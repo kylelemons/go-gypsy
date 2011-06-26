@@ -3,7 +3,10 @@ Introduction
 
 Gypsy is a simplified YAML parser written in Go.  It is intended to be used as
 a simple configuration file, and as such does not support a lot of the more
-nuanced syntaxes allowed in full-fledged YAML.
+nuanced syntaxes allowed in full-fledged YAML.  For the purpose of calculating
+indent, a tab and a space are both considered to have a width of 1.  It is
+recommended that your editor be configured to convert tabs to spaces when
+editing Gypsy config files.
 
 Syntax
 ======

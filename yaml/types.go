@@ -58,6 +58,10 @@ func (node Map) write(out io.Writer, firstind, nextind int) {
 	}
 	for _, key := range objectkeys {
 		out.Write(indent[:ind])
+		if node[key] == nil {
+			fmt.Fprintf(out, "%s: <nil>\n", key)
+			continue
+		}
 		fmt.Fprintf(out, "%s:\n", key)
 		ind = nextind
 		node[key].write(out, ind+2, ind+2)

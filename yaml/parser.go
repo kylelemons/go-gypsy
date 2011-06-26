@@ -2,404 +2,301 @@ package yaml
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"strings"
+	"bytes"
 )
 
 func Parse(r io.Reader) (node Node, err os.Error) {
+	lb := &LineBuffer{
+		Reader: bufio.NewReader(r),
+	}
+
 	defer func() {
 		if r := recover(); r != nil {
 			switch r := r.(type) {
 			case os.Error:
 				err = r
 			case string:
-				err = os.NewError("yaml: " + r)
+				err = os.NewError(r)
 			default:
 				err = fmt.Errorf("%v", r)
 			}
 		}
 	}()
-	p := &parser{
-		Reader: bufio.NewReader(r),
-		Stop:   make(chan bool),
-		Tokens: make(chan token, 10),
-	}
-	go p.tokenize()
+
 	fmt.Println("Parse: parsing node")
-	node = p.parseNode()
+
+	node = parseNode(lb, 0, nil)
 	return
 }
 
-type parser struct {
-	*bufio.Reader
-
-	Prefix string
-	Stack  []string
-	Stop   chan bool
-	Tokens chan token
-	Last   *token
+type Line struct {
+	lineno int
+	indent int
+	line   []byte
 }
 
-type token struct {
-	Type int
-	Str  string
+func (line *Line) String() string {
+	return fmt.Sprintf("%2d: %s%s", line.indent,
+		strings.Repeat(" ", 0*line.indent), string(line.line))
 }
 
-func (tok token) String() string {
-	return fmt.Sprintf("[%s:%q]", tokenNames[tok.Type], tok.Str)
+func (line *Line) BreakAt(i int) (end *Line) {
+	end = new(Line)
+	*end = *line
+	line.line = line.line[:i]
+	end.line = end.line[i:]
+	return
+}
+
+type LineReader interface {
+	Next(minIndent int) *Line
 }
 
 const (
-	tokIndent = iota
-	tokSpace
-	tokLabel
-	tokString
-	tokNewline
-	tokColon
-	tokDash
-	tokListOpen
-	tokListClose
-	tokMapOpen
-	tokMapClose
-	tokComma
-	tokEOF
+	typUnknown = iota
+	typSequence
+	typMapping
+	typScalar
 )
 
-var tokenNames = map[int]string{
-	tokIndent:    "INDENT",
-	tokSpace:     "SPACE",
-	tokLabel:     "LABEL",
-	tokString:    "STRING",
-	tokNewline:   "EOL",
-	tokColon:     "COLON",
-	tokDash:      "DASH",
-	tokListOpen:  "LIST-OPEN",
-	tokListClose: "LIST-CLOSE",
-	tokMapOpen:   "MAP-OPEN",
-	tokMapClose:  "MAP-CLOSE",
-	tokComma:     "COMMA",
-	tokEOF:       "EOF",
+var typNames = []string{
+	"Unknown", "Sequence", "Mapping", "Scalar",
 }
 
-func (p *parser) next() (tok token) {
-	if p.Last != nil {
-		tok, p.Last = *p.Last, nil
+func parseNode(r LineReader, ind int, initial Node) (node Node) {
+	first := true
+	node = initial
+
+	// read lines
+	for {
+		line := r.Next(ind)
+		if line == nil {
+			break
+		}
+		pfx := strings.Repeat(".", line.indent)
+
+		if len(line.line) == 0 {
+			continue
+		}
+		fmt.Printf("%s%#v (initial)\n", strings.Repeat("+", line.indent), node)
+		fmt.Printf("%s%s\n", strings.Repeat("=", line.indent), string(line.line))
+
+		if first {
+			ind = line.indent
+			first = false
+		}
+
+		types := []int{}
+		pieces := []string{}
+
+		var inlineValue func([]byte)
+		inlineValue = func(partial []byte) {
+			// TODO(kevlar): This can be a for loop now
+			vtyp, brk := getType(partial)
+			begin, end := partial[:brk], partial[brk:]
+
+			if vtyp == typMapping {
+				end = end[1:]
+			}
+			end = bytes.TrimLeft(end, " \t")
+
+			switch vtyp {
+			case typScalar:
+				//fmt.Printf("%s=Scalar: %q\n", pfx, end)
+				types = append(types, typScalar)
+				pieces = append(pieces, string(end))
+				return
+			case typMapping:
+				types = append(types, typMapping)
+				pieces = append(pieces, string(begin))
+				inlineValue(end)
+			case typSequence:
+				types = append(types, typSequence)
+				pieces = append(pieces, "-")
+				inlineValue(end)
+			}
+
+			/*
+			inline := parseNode(r, line.indent+1, typUnknown)
+			fmt.Printf("%sSUB: %#v\n", pfx, inline)
+			switch vtyp {
+			case typMapping:
+				if inline == nil {
+					inline = make(Map)
+				}
+				mapNode, ok := inline.(Map)
+				if !ok {
+					panic(fmt.Sprintf("type mismatch: %T + %T", mapNode, inline))
+				}
+				//fmt.Printf("%s=Mapping %T=%#v %v\n", pfx, inline, mapNode, ok)
+			}
+			*/
+		}
+
+		inlineValue(line.line)
+		var prev Node
+
+		// Nest inlines
+		for len(types) > 0 {
+			fmt.Printf("%sTYP: %v\n", pfx, types)
+			fmt.Printf("%sVAL: %v\n", pfx, pieces)
+
+			last := len(types)-1
+			typ, piece := types[last], pieces[last]
+
+			var current Node
+			if last == 0 {
+				current = node
+			}
+			//child := parseNode(r, line.indent+1, typUnknown) // TODO allow scalar only
+
+			// Add to current node
+			switch typ {
+			case typScalar: // last will be == nil
+				if _, ok := current.(Scalar); current != nil && !ok {
+					panic("cannot append scalar to non-scalar node")
+				}
+				if current != nil {
+					current = Scalar(piece) + " " + current.(Scalar)
+					break
+				}
+				current = Scalar(piece)
+			case typMapping:
+				var mapNode Map
+				var ok bool
+				var child Node
+
+				// Get the current map, if there is one
+				if mapNode, ok = current.(Map); current != nil && !ok {
+					_ = current.(Map) // panic
+				} else if current == nil {
+					mapNode = make(Map)
+				}
+
+				if _, inlineMap := prev.(Scalar); inlineMap && last > 0 {
+					current = Map{
+						piece: prev,
+					}
+					fmt.Printf("%sInline: %#v\n", pfx, current)
+					break
+				}
+
+				child = parseNode(r, line.indent+1, prev)
+				mapNode[piece] = child
+				current = mapNode
+
+				fmt.Printf("%sAssign %q: %#v\n", pfx, piece, current)
+			}
+
+			if last < 0 {
+				last = 0
+			}
+			types = types[:last]
+			pieces = pieces[:last]
+			fmt.Printf("%sINL: %#v\n", pfx, current)
+			prev = current
+		}
+
+		fmt.Printf("%sLIN: %#v\n", pfx, prev)
+		node = prev
+	}
+	fmt.Printf("%sRET: %#v\n", strings.Repeat(":", ind), node)
+	return
+}
+
+func getType(line []byte) (typ, split int) {
+	if len(line) == 0 {
 		return
 	}
-	var open bool
-	tok, open = <-p.Tokens
-	if !open {
-		tok = token{tokEOF, ""}
+	if line[0] == '-' {
+		typ = typSequence
+		split = 1
+	} else {
+		for i := 0; i < len(line); i++ {
+			switch ch := line[i]; ch {
+			case ' ', '\t':
+				typ = typScalar
+			case ':':
+				typ = typMapping
+				split = i
+			default:
+				continue
+			}
+			return
+		}
 	}
+	typ = typScalar
 	return
 }
 
-func (p *parser) backup(tok token) {
-	p.Last = &tok
+// LineReader implementations
+
+type LineBuffer struct {
+	*bufio.Reader
+	readLines int
+	pending *Line
 }
 
-func (p *parser) tokenize() {
-	defer close(p.Tokens)
+func (lb *LineBuffer) Next(min int) (next *Line) {
+	if lb.pending == nil {
+		var (
+			read []byte
+			more bool
+			err  os.Error
+		)
 
-	var (
-		line, part         []byte
-		err                os.Error
-		more, initialSpace bool
-		typ                int
-	)
-
-lineLoop:
-	for {
-		select {
-		case <-p.Stop:
-			break
-		default:
-		}
-
-		line, more, err = p.ReadLine()
+		l := new(Line)
+		l.lineno = lb.readLines
+		more = true
 		for more {
-			var suffix []byte
-			suffix, more, err = p.ReadLine()
-			line = append(line, suffix...)
-		}
-
-		switch err {
-		case os.EOF:
-			break lineLoop
-		default:
-			panic(err)
-		case nil:
-		}
-
-		initialSpace = true
-
-	parseObject:
-		// strip indent
-		part = bytes.TrimLeft(line, " \t")
-
-		if len(part) == 0 {
-			p.Tokens <- token{tokNewline, "\n"}
-			continue
-		}
-		if len(part) < len(line) {
-			n, m := len(line), len(part)
-			typ := tokSpace
-			if initialSpace {
-				typ = tokIndent
+			read, more, err = lb.ReadLine()
+			if err != nil {
+				if err == os.EOF {
+					return nil
+				}
+				panic(err)
 			}
-			p.Tokens <- token{typ, string(line[:n-m])}
+			l.line = append(l.line, read...)
 		}
-		line = part
-
-		initialSpace = false
-
-		if line[0] == '-' {
-			p.Tokens <- token{tokDash, "-"}
-			line = line[1:]
-			goto parseObject
-		}
-
-		for i := 0; i < len(line); i++ {
-			switch line[i] {
+		lb.readLines++
+		for _, ch := range l.line {
+			switch ch {
 			case ' ', '\t':
-				typ = tokString
-			case '[':
-				typ = tokListOpen
-			case '{':
-				typ = tokMapOpen
-			case ':':
-				typ = tokColon
-			default:
+				l.indent += 1
 				continue
-			}
-			// if it's a string, consume the rest of the line
-			if typ == tokString {
-				p.Tokens <- token{tokString, string(line)}
-				line = line[:0]
-				break
-			}
-			if i > 0 {
-				p.Tokens <- token{tokLabel, string(line[:i])}
-			}
-			p.Tokens <- token{typ, string(line[i : i+1])}
-			line = line[i+1:]
-			if typ == tokColon {
-				goto parseObject
+			default:
 			}
 			break
 		}
-
-		for i := 0; i < len(line); i++ {
-			switch line[i] {
-			case ' ', '\t':
-				typ = tokString
-			case '[':
-				typ = tokListOpen
-			case '{':
-				typ = tokMapOpen
-			case ']':
-				typ = tokListClose
-			case '}':
-				typ = tokMapClose
-			case ',':
-				typ = tokComma
-			case ':':
-				typ = tokColon
-			default:
-				continue
-			}
-			// if it's a string, consume the rest of the line
-			if typ == tokString {
-				p.Tokens <- token{tokString, string(line)}
-				line = line[:0]
-				break
-			}
-			if i > 0 {
-				p.Tokens <- token{tokString, string(line[:i])}
-			}
-			p.Tokens <- token{typ, string(line[i : i+1])}
-			line = line[i+1:]
-			i = 0
-		}
-
-		if len(line) > 0 {
-			p.Tokens <- token{tokString, string(line)}
-		}
-		p.Tokens <- token{tokNewline, "\n"}
+		l.line = l.line[l.indent:]
+		lb.pending = l
 	}
-}
-
-func (p *parser) push() {
-	p.Stack = append(p.Stack, p.Prefix)
-	fmt.Printf("push: pushing prefix: %q %#v\n", p.Prefix, p.Stack)
-}
-
-func (p *parser) pop() {
-	if n := len(p.Stack); n > 0 {
-		p.Prefix = p.Stack[n-1]
-		p.Stack = p.Stack[:n-1]
-	}
-	fmt.Printf("pop: new prefix: %q %#v\n", p.Prefix, p.Stack)
-}
-
-func (p *parser) parseNode() Node {
-	/*
-		for tok := range p.Tokens {
-			t := tokenNames[tok.Type]
-			s := tok.Str
-			fmt.Printf("(%s)%s", t, s)
-		}
-	*/
-
-	tok := p.next()
-
-	if tok.Type == tokString {
-		p.backup(tok)
-		fmt.Println("parse: got string")
-		return p.parseScalar()
-	}
-
-	gotIndent, wantIndent := "", p.Prefix
-	for {
-		fmt.Println("parse:", tok)
-		switch tok.Type {
-		case tokNewline:
-			fmt.Println("parse: skip newline")
-			tok = p.next()
-			continue
-		case tokIndent:
-			fmt.Println("parse: skip indent")
-			gotIndent += tok.Str
-			tok = p.next()
-			continue
-		}
-		break
-	}
-
-	// If we don't have sufficient indentation, this is a nil object
-	if !strings.HasPrefix(gotIndent, wantIndent) {
-		fmt.Println("parse: insufficient indent")
+	next = lb.pending
+	if next.indent < min {
 		return nil
 	}
-	p.push()
-	p.Prefix = gotIndent
-	defer p.pop()
-
-	switch tok.Type {
-	case tokLabel:
-		p.backup(tok)
-		fmt.Println("parse: got label")
-		return p.parseMapping()
-	default:
-		fmt.Println("parse: unexpected token:", tok)
-	}
-
-	return nil
-}
-
-// prereqs:
-//  - this line must have its indentation verified
-//  - the label should be the first token in the stream
-func (p *parser) parseMapping() (mapping Map) {
-	for {
-		tok := p.next()
-		fmt.Println("map:", tok)
-
-		// TODO(kevlar): factor into a function
-		gotIndent, wantIndent := "", p.Prefix
-		if tok.Type == tokIndent {
-			fmt.Println("map: found indent")
-			gotIndent = tok.Str
-			tok = p.next()
-		}
-
-		switch len(mapping) {
-		case 0:
-			mapping = make(Map)
-			fmt.Println("map: first keyval")
-		case 1:
-			// Set prefix based on first non-inline key
-			p.Prefix = gotIndent
-			fmt.Println("map: second keyval")
-		default:
-			fmt.Printf("map: indent: got %q, want %q\n", gotIndent, wantIndent)
-			if gotIndent != wantIndent {
-				p.backup(tok)
-				fmt.Println("map: insufficient indent", tok)
-				return
-			}
-			fmt.Println("map: subsequent keyval")
-		}
-
-		var key string
-		var val Node
-
-		switch tok.Type {
-		case tokEOF:
-			fmt.Println("map: EOF")
-			return
-		case tokLabel:
-			key = tok.Str
-			fmt.Println("map: key:", key)
-		default:
-			fmt.Println("map: want LABEL, got", tokenNames[tok.Type])
-			return nil
-		}
-
-		if tok := p.next(); tok.Type != tokColon {
-			fmt.Println("map: want COLON, got", tokenNames[tok.Type])
-			return nil
-		}
-
-		for {
-			if tok := p.next(); tok.Type != tokSpace {
-				p.backup(tok)
-				break
-			}
-		}
-
-		val = p.parseNode()
-
-		if val == nil {
-			fmt.Printf("map: done %#v\n", mapping)
-			break
-		}
-		mapping[key] = val
-		fmt.Printf("map: added %#v\n", mapping)
-	}
+	lb.pending = nil
 	return
 }
 
-// prereq:
-// - next token should be string
-func (p *parser) parseScalar() Scalar {
-	str := ""
-	for {
-		tok := p.next()
-		fmt.Println("scalar:", tok)
-		switch tok.Type {
-		case tokString:
-			if len(str) > 0 {
-				str += "\n"
-			}
-			str += tok.Str
-			continue
-		case tokNewline:
-			continue
-		// TODO(kevlar) multiline strings?
-		/*
-			case tokIndent:
-				// TODO
-				continue
-		*/
-		default:
-			p.backup(tok)
-		}
-		break
+type LineSlice []*Line
+
+func (ls *LineSlice) Next(min int) (next *Line) {
+	if len(*ls) == 0 {
+		return nil
 	}
-	fmt.Printf("scalar: %q\n", str)
-	return Scalar(str)
+	next = (*ls)[0]
+	if next.indent < min {
+		return nil
+	}
+	*ls = (*ls)[1:]
+	return
+}
+
+func (ls *LineSlice) Push(line *Line) {
+	*ls = append(*ls, line)
 }
