@@ -27,10 +27,25 @@ func Parse(r io.Reader) (node Node, err os.Error) {
 		}
 	}()
 
-	fmt.Println("Parse: parsing node")
-
 	node = parseNode(lb, 0, nil)
 	return
+}
+
+// Supporting types and constants
+
+const (
+	typUnknown = iota
+	typSequence
+	typMapping
+	typScalar
+)
+
+var typNames = []string{
+	"Unknown", "Sequence", "Mapping", "Scalar",
+}
+
+type LineReader interface {
+	Next(minIndent int) *Line
 }
 
 type Line struct {
@@ -44,29 +59,6 @@ func (line *Line) String() string {
 		strings.Repeat(" ", 0*line.indent), string(line.line))
 }
 
-func (line *Line) BreakAt(i int) (end *Line) {
-	end = new(Line)
-	*end = *line
-	line.line = line.line[:i]
-	end.line = end.line[i:]
-	return
-}
-
-type LineReader interface {
-	Next(minIndent int) *Line
-}
-
-const (
-	typUnknown = iota
-	typSequence
-	typMapping
-	typScalar
-)
-
-var typNames = []string{
-	"Unknown", "Sequence", "Mapping", "Scalar",
-}
-
 func parseNode(r LineReader, ind int, initial Node) (node Node) {
 	first := true
 	node = initial
@@ -77,13 +69,10 @@ func parseNode(r LineReader, ind int, initial Node) (node Node) {
 		if line == nil {
 			break
 		}
-		pfx := strings.Repeat(".", line.indent)
 
 		if len(line.line) == 0 {
 			continue
 		}
-		fmt.Printf("%s%#v (initial)\n", strings.Repeat("+", line.indent), node)
-		fmt.Printf("%s%s\n", strings.Repeat("=", line.indent), string(line.line))
 
 		if first {
 			ind = line.indent
@@ -106,7 +95,6 @@ func parseNode(r LineReader, ind int, initial Node) (node Node) {
 
 			switch vtyp {
 			case typScalar:
-				//fmt.Printf("%s=Scalar: %q\n", pfx, end)
 				types = append(types, typScalar)
 				pieces = append(pieces, string(end))
 				return
@@ -119,22 +107,6 @@ func parseNode(r LineReader, ind int, initial Node) (node Node) {
 				pieces = append(pieces, "-")
 				inlineValue(end)
 			}
-
-			/*
-			inline := parseNode(r, line.indent+1, typUnknown)
-			fmt.Printf("%sSUB: %#v\n", pfx, inline)
-			switch vtyp {
-			case typMapping:
-				if inline == nil {
-					inline = make(Map)
-				}
-				mapNode, ok := inline.(Map)
-				if !ok {
-					panic(fmt.Sprintf("type mismatch: %T + %T", mapNode, inline))
-				}
-				//fmt.Printf("%s=Mapping %T=%#v %v\n", pfx, inline, mapNode, ok)
-			}
-			*/
 		}
 
 		inlineValue(line.line)
@@ -142,10 +114,7 @@ func parseNode(r LineReader, ind int, initial Node) (node Node) {
 
 		// Nest inlines
 		for len(types) > 0 {
-			fmt.Printf("%sTYP: %v\n", pfx, types)
-			fmt.Printf("%sVAL: %v\n", pfx, pieces)
-
-			last := len(types)-1
+			last := len(types) - 1
 			typ, piece := types[last], pieces[last]
 
 			var current Node
@@ -181,7 +150,6 @@ func parseNode(r LineReader, ind int, initial Node) (node Node) {
 					current = Map{
 						piece: prev,
 					}
-					fmt.Printf("%sInline: %#v\n", pfx, current)
 					break
 				}
 
@@ -189,7 +157,29 @@ func parseNode(r LineReader, ind int, initial Node) (node Node) {
 				mapNode[piece] = child
 				current = mapNode
 
-				fmt.Printf("%sAssign %q: %#v\n", pfx, piece, current)
+			case typSequence:
+				var listNode List
+				var ok bool
+				var child Node
+
+				// Get the current list, if there is one
+				if listNode, ok = current.(List); current != nil && !ok {
+					_ = current.(List) // panic
+				} else if current == nil {
+					listNode = make(List, 0)
+				}
+
+				if _, inlineList := prev.(Scalar); inlineList && last > 0 {
+					current = List{
+						prev,
+					}
+					break
+				}
+
+				child = parseNode(r, line.indent+1, prev)
+				listNode = append(listNode, child)
+				current = listNode
+
 			}
 
 			if last < 0 {
@@ -197,14 +187,11 @@ func parseNode(r LineReader, ind int, initial Node) (node Node) {
 			}
 			types = types[:last]
 			pieces = pieces[:last]
-			fmt.Printf("%sINL: %#v\n", pfx, current)
 			prev = current
 		}
 
-		fmt.Printf("%sLIN: %#v\n", pfx, prev)
 		node = prev
 	}
-	fmt.Printf("%sRET: %#v\n", strings.Repeat(":", ind), node)
 	return
 }
 
@@ -215,6 +202,7 @@ func getType(line []byte) (typ, split int) {
 	if line[0] == '-' {
 		typ = typSequence
 		split = 1
+		return
 	} else {
 		for i := 0; i < len(line); i++ {
 			switch ch := line[i]; ch {
@@ -238,7 +226,7 @@ func getType(line []byte) (typ, split int) {
 type LineBuffer struct {
 	*bufio.Reader
 	readLines int
-	pending *Line
+	pending   *Line
 }
 
 func (lb *LineBuffer) Next(min int) (next *Line) {
