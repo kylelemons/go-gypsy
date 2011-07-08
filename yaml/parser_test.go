@@ -26,6 +26,7 @@ var parseTests = []struct {
 			"      e: f\n" +
 			"   g: h: i\n" +
 			"      j: k\n" +
+			"# comment\n" +
 			"   l: m\n" +
 			"n: o\n" +
 			"",

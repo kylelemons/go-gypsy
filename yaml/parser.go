@@ -251,6 +251,7 @@ func (lb *LineBuffer) Next(min int) (next *Line) {
 			l.line = append(l.line, read...)
 		}
 		lb.readLines++
+
 		for _, ch := range l.line {
 			switch ch {
 			case ' ', '\t':
@@ -261,6 +262,12 @@ func (lb *LineBuffer) Next(min int) (next *Line) {
 			break
 		}
 		l.line = l.line[l.indent:]
+
+		// Ignore blank lines and comments.
+		if len(l.line) == 0 || l.line[0] == '#' {
+			return lb.Next(min)
+		}
+
 		lb.pending = l
 	}
 	next = lb.pending
