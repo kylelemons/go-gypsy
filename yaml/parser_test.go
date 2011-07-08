@@ -164,40 +164,6 @@ func TestParse(t *testing.T) {
 	}
 }
 
-var lineBreakTests = []struct {
-	Line    string
-	BreakAt int
-	First   string
-	Last    string
-}{
-	{"- blah: test", 2, "- ", "blah: test"},
-	{"  - - test", 2, "- ", "- test"},
-}
-
-func TestLineBreak(t *testing.T) {
-	for idx, test := range lineBreakTests {
-		var first, last *Line
-		var i int
-		for ; i < len(test.Line); i++ {
-			if ch := test.Line[i]; ch != ' ' {
-				first = &Line{
-					lineno: idx,
-					indent: i,
-					line:   []byte(test.Line[i:]),
-				}
-				break
-			}
-		}
-		last = first.BreakAt(test.BreakAt)
-		if got, want := string(first.line), test.First; got != want {
-			t.Errorf("%d. first = %q, want %q", got, want)
-		}
-		if got, want := string(last.line), test.Last; got != want {
-			t.Errorf("%d. last = %q, want %q", got, want)
-		}
-	}
-}
-
 var getTypeTests = []struct {
 	Value string
 	Type  int
