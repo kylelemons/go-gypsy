@@ -79,10 +79,6 @@ func (f *File) Require(spec string) string {
 	return str
 }
 
-// Child retrieves a child node specified by a string of the same format as
-// that expected by Get.  The final node is not required to be a Scalar.  If a
-// node along the evaluation path is not found, an error is returned.
-//
 // Child retrieves a child node from the specified node as follows:
 //   .mapkey   - Get the key 'mapkey' of the Node, which must be a Map
 //   [idx]     - Choose the index from the current Node, which must be a List
