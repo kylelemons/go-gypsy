@@ -32,18 +32,31 @@ func ReadFile(filename string) (*File, os.Error) {
 	return f, nil
 }
 
-// ReadString reads a YAML configuration file from a static string.
-func ReadString(configuration string) (*File, os.Error) {
+// Config reads a YAML configuration from a static string.  If an error is
+// found, it will panic.  This is a utility function and is intended for use in
+// initializers.
+func Config(yamlconf string) *File {
 	var err os.Error
-	buf := bytes.NewBufferString(configuration)
+	buf := bytes.NewBufferString(yamlconf)
 
 	f := new(File)
 	f.Root, err = Parse(buf)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	return f, nil
+	return f
+}
+
+// ConfigFile reads a YAML configuration file from the given filename and
+// panics if an error is found.  This is a utility function and is intended for
+// use in initializers.
+func ConfigFile(filename string) *File {
+	f, err := ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	return f
 }
 
 // Get retrieves a scalar from the file specified by a string of the same

@@ -45,10 +45,7 @@ var configGetTests = []struct{
 }
 
 func TestGet(t *testing.T) {
-	config, err := ReadString(dummyConfigFile)
-	if err != nil {
-		t.Fatalf("read: %s", err)
-	}
+	config := Config(dummyConfigFile)
 
 	for _, test := range configGetTests {
 		got, err := config.Get(test.Spec)
