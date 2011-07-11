@@ -113,7 +113,7 @@ var parseTests = []struct {
 			"french:\n" +
 			" - un\n" +
 			" - deux\n" +
-			" - troix\n" +
+			" - trois\n" +
 			"english:\n" +
 			" - one\n" +
 			" - two\n" +
@@ -126,7 +126,7 @@ var parseTests = []struct {
 			"french:\n" +
 			"  - un\n" +
 			"  - deux\n" +
-			"  - troix\n" +
+			"  - trois\n" +
 			"japanese:\n" +
 			"  - ichi\n" +
 			"  - ni\n" +

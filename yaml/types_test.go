@@ -76,7 +76,7 @@ question:
 	{
 		Tree: List{
 			List{Scalar("one"), Scalar("two"), Scalar("three")},
-			List{Scalar("un"), Scalar("deux"), Scalar("troix")},
+			List{Scalar("un"), Scalar("deux"), Scalar("trois")},
 			List{Scalar("ichi"), Scalar("ni"), Scalar("san")},
 		},
 		Expect: `- - one
@@ -84,7 +84,7 @@ question:
   - three
 - - un
   - deux
-  - troix
+  - trois
 - - ichi
   - ni
   - san

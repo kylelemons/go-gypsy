@@ -55,7 +55,7 @@
 //       - three
 //     - - un
 //       - deux
-//       - troix
+//       - trois
 //     - - ichi
 //       - ni
 //       - san
