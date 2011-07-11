@@ -91,7 +91,7 @@ func parseNode(r LineReader, ind int, initial Node) (node Node) {
 			if vtyp == typMapping {
 				end = end[1:]
 			}
-			end = bytes.TrimLeft(end, " \t")
+			end = bytes.TrimLeft(end, " ")
 
 			switch vtyp {
 			case typScalar:
@@ -206,7 +206,7 @@ func getType(line []byte) (typ, split int) {
 	} else {
 		for i := 0; i < len(line); i++ {
 			switch ch := line[i]; ch {
-			case ' ', '\t':
+			case ' ':
 				typ = typScalar
 			case ':':
 				typ = typMapping
@@ -253,7 +253,7 @@ func (lb *LineBuffer) Next(min int) (next *Line) {
 		lb.readLines++
 		for _, ch := range l.line {
 			switch ch {
-			case ' ', '\t':
+			case ' ':
 				l.indent += 1
 				continue
 			default:
