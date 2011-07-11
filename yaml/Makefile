@@ -5,5 +5,6 @@ GOFILES=\
 	types.go\
 	yaml.go\
 	parser.go\
+	config.go\
 
 include $(GOROOT)/src/Make.pkg
