@@ -120,3 +120,5 @@
 //                  KEY = { alpha | digit }
 //               INDENT = { ' ' }
 package yaml
+
+// BUG(kevlar): Multi-line strings are currently not supported.
