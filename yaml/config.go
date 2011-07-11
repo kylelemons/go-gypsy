@@ -32,7 +32,7 @@ func ReadFile(filename string) (*File, os.Error) {
 	return f, nil
 }
 
-// ReadFile reads a YAML configuration file from a static string.
+// ReadString reads a YAML configuration file from a static string.
 func ReadString(configuration string) (*File, os.Error) {
 	var err os.Error
 	buf := bytes.NewBufferString(configuration)
