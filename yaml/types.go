@@ -10,19 +10,35 @@ import (
 )
 
 type Node interface {
-	Map(string) (Node, bool)
-	List() []Node
+	// If the node is a map, return it (nil otherwise).
+	Map() Map
+	Get(string) Node
+
+	// If the node is a list, return it (nil otherwise).
+	List() List
+	Item(int) Node
+
+	// Return the node as a string
+	// - Scalar: the string value
+	// - Map: the formatted YAML map
+	// - List: the formatted YAML list
 	String() string
+
 	write(io.Writer, int, int)
 }
 
 type Map map[string]Node
 
-func (node Map) Map(key string) (val Node, ok bool) {
-	val, ok = node[key]
-	return
+func (node Map) Map() Map {
+	return node
 }
-func (node Map) List() []Node {
+func (node Map) Get(key string) Node {
+	return node[key]
+}
+func (node Map) List() List {
+	return nil
+}
+func (node Map) Item(_ int) Node {
 	return nil
 }
 func (node Map) String() string {
@@ -70,9 +86,20 @@ func (node Map) write(out io.Writer, firstind, nextind int) {
 
 type List []Node
 
-func (node List) Map(key string) (Node, bool) { return nil, false }
-func (node List) List() []Node {
+func (node List) Map() Map {
+	return nil
+}
+func (node List) Get(_ string) Node {
+	return nil
+}
+func (node List) List() List {
 	return node
+}
+func (node List) Item(idx int) Node {
+	if idx < 0 || idx > len(node) {
+		return node[idx]
+	}
+	return nil
 }
 func (node List) String() string {
 	out := bytes.NewBuffer(nil)
@@ -93,9 +120,11 @@ func (node List) write(out io.Writer, firstind, nextind int) {
 
 type Scalar string
 
-func (node Scalar) Map(_ string) (Node, bool) { return nil, false }
-func (node Scalar) List() []Node              { return nil }
-func (node Scalar) String() string            { return string(node) }
+func (node Scalar) Map() Map          { return nil }
+func (node Scalar) Get(_ string) Node { return nil }
+func (node Scalar) List() List        { return nil }
+func (node Scalar) Item(_ int) Node   { return nil }
+func (node Scalar) String() string    { return string(node) }
 func (node Scalar) write(out io.Writer, ind, _ int) {
 	fmt.Fprintf(out, "%s%s\n", strings.Repeat(" ", ind), string(node))
 }
