@@ -3,9 +3,6 @@ package yaml
 import (
 	"testing"
 	"bytes"
-	"fmt"
-
-	"runtime/debug"
 )
 
 var parseTests = []struct {
@@ -117,7 +114,7 @@ var parseTests = []struct {
 			"french:\n" +
 			" - un\n" +
 			" - deux\n" +
-			" - troix\n" +
+			" - trois\n" +
 			"english:\n" +
 			" - one\n" +
 			" - two\n" +
@@ -130,7 +127,7 @@ var parseTests = []struct {
 			"french:\n" +
 			"  - un\n" +
 			"  - deux\n" +
-			"  - troix\n" +
+			"  - trois\n" +
 			"japanese:\n" +
 			"  - ichi\n" +
 			"  - ni\n" +
@@ -140,24 +137,13 @@ var parseTests = []struct {
 }
 
 func TestParse(t *testing.T) {
-	/*
-		defer func() {
-			if r := recover(); r != nil {
-				debug.PrintStack()
-			}
-		}()
-	*/
-	_ = debug.PrintStack
-
 	for idx, test := range parseTests {
 		buf := bytes.NewBufferString(test.Input)
 		node, err := Parse(buf)
 		if err != nil {
 			t.Errorf("parse: %s", err)
 		}
-		buf.Truncate(0)
-		fmt.Fprintf(buf, "%s", node)
-		if got, want := buf.String(), test.Output; got != want {
+		if got, want := Render(node), test.Output; got != want {
 			t.Errorf("---%d---", idx)
 			t.Errorf("got: %q:\n%s", got, got)
 			t.Errorf("want: %q:\n%s", want, want)

@@ -4,32 +4,23 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"sort"
 	"strings"
 )
 
+// A Node is a YAML Node which can be a Map, List or Scalar.
 type Node interface {
-	Map(string) (Node, bool)
-	List() []Node
-	String() string
 	write(io.Writer, int, int)
 }
 
+// A Map is a YAML Mapping which maps Strings to Nodes.
 type Map map[string]Node
 
-func (node Map) Map(key string) (val Node, ok bool) {
-	val, ok = node[key]
-	return
+// Key returns the value associeted with the key in the map.
+func (node Map) Key(key string) Node {
+	return node[key]
 }
-func (node Map) List() []Node {
-	return nil
-}
-func (node Map) String() string {
-	out := bytes.NewBuffer(nil)
-	node.write(out, 0, 0)
-	return out.String()
-}
+
 func (node Map) write(out io.Writer, firstind, nextind int) {
 	indent := bytes.Repeat([]byte{' '}, nextind)
 	ind := firstind
@@ -68,17 +59,22 @@ func (node Map) write(out io.Writer, firstind, nextind int) {
 	}
 }
 
+// A List is a YAML Sequence of Nodes.
 type List []Node
 
-func (node List) Map(key string) (Node, bool) { return nil, false }
-func (node List) List() []Node {
-	return node
+// Get the number of items in the List.
+func (node List) Len() int {
+	return len(node)
 }
-func (node List) String() string {
-	out := bytes.NewBuffer(nil)
-	node.write(out, 0, 0)
-	return out.String()
+
+// Get the idx'th item from the List.
+func (node List) Item(idx int) Node {
+	if idx < 0 || idx > len(node) {
+		return node[idx]
+	}
+	return nil
 }
+
 func (node List) write(out io.Writer, firstind, nextind int) {
 	indent := bytes.Repeat([]byte{' '}, nextind)
 	ind := firstind
@@ -91,15 +87,20 @@ func (node List) write(out io.Writer, firstind, nextind int) {
 	}
 }
 
+// A Scalar is a YAML Scalar.
 type Scalar string
 
-func (node Scalar) Map(_ string) (Node, bool) { return nil, false }
-func (node Scalar) List() []Node              { return nil }
-func (node Scalar) String() string            { return string(node) }
+// String returns the string represented by this Scalar.
+func (node Scalar) String() string    { return string(node) }
+
 func (node Scalar) write(out io.Writer, ind, _ int) {
 	fmt.Fprintf(out, "%s%s\n", strings.Repeat(" ", ind), string(node))
 }
 
-func Scan(format string, args ...interface{}) (n int, err os.Error) {
-	return
+// Render returns a string of the node as a YAML document.  Note that
+// Scalars will have a newline appended if they are rendered directly.
+func Render(node Node) string {
+	buf := bytes.NewBuffer(nil)
+	node.write(buf, 0, 0)
+	return buf.String()
 }

@@ -10,7 +10,8 @@ var stringTests = []struct {
 }{
 	{
 		Tree:   Scalar("test"),
-		Expect: `test`,
+		Expect: `test
+`,
 	},
 	{
 		Tree: List{
@@ -75,7 +76,7 @@ question:
 	{
 		Tree: List{
 			List{Scalar("one"), Scalar("two"), Scalar("three")},
-			List{Scalar("un"), Scalar("deux"), Scalar("troix")},
+			List{Scalar("un"), Scalar("deux"), Scalar("trois")},
 			List{Scalar("ichi"), Scalar("ni"), Scalar("san")},
 		},
 		Expect: `- - one
@@ -83,7 +84,7 @@ question:
   - three
 - - un
   - deux
-  - troix
+  - trois
 - - ichi
   - ni
   - san
@@ -104,9 +105,9 @@ yahoo:
 	},
 }
 
-func TestString(t *testing.T) {
+func TestRender(t *testing.T) {
 	for idx, test := range stringTests {
-		if got, want := test.Tree.String(), test.Expect; got != want {
+		if got, want := Render(test.Tree), test.Expect; got != want {
 			t.Errorf("%d. got:\n%s\n%d. want:\n%s\n", idx, got, idx, want)
 		}
 	}
