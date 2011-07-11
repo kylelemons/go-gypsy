@@ -20,8 +20,10 @@ var parseTests = []struct {
 	},
 	{
 		Input: "a: b: c: d\n" +
+			"      # comment\n" +
 			"      e: f\n" +
 			"   g: h: i\n" +
+			"\n" +
 			"      j: k\n" +
 			"# comment\n" +
 			"   l: m\n" +
