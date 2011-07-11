@@ -10,7 +10,7 @@ import (
 )
 
 func Parse(r io.Reader) (node Node, err os.Error) {
-	lb := &LineBuffer{
+	lb := &lineBuffer{
 		Reader: bufio.NewReader(r),
 	}
 
@@ -44,22 +44,22 @@ var typNames = []string{
 	"Unknown", "Sequence", "Mapping", "Scalar",
 }
 
-type LineReader interface {
-	Next(minIndent int) *Line
+type lineReader interface {
+	Next(minIndent int) *indentedLine
 }
 
-type Line struct {
+type indentedLine struct {
 	lineno int
 	indent int
 	line   []byte
 }
 
-func (line *Line) String() string {
+func (line *indentedLine) String() string {
 	return fmt.Sprintf("%2d: %s%s", line.indent,
 		strings.Repeat(" ", 0*line.indent), string(line.line))
 }
 
-func parseNode(r LineReader, ind int, initial Node) (node Node) {
+func parseNode(r lineReader, ind int, initial Node) (node Node) {
 	first := true
 	node = initial
 
@@ -221,15 +221,15 @@ func getType(line []byte) (typ, split int) {
 	return
 }
 
-// LineReader implementations
+// lineReader implementations
 
-type LineBuffer struct {
+type lineBuffer struct {
 	*bufio.Reader
 	readLines int
-	pending   *Line
+	pending   *indentedLine
 }
 
-func (lb *LineBuffer) Next(min int) (next *Line) {
+func (lb *lineBuffer) Next(min int) (next *indentedLine) {
 	if lb.pending == nil {
 		var (
 			read []byte
@@ -237,7 +237,7 @@ func (lb *LineBuffer) Next(min int) (next *Line) {
 			err  os.Error
 		)
 
-		l := new(Line)
+		l := new(indentedLine)
 		l.lineno = lb.readLines
 		more = true
 		for more {
@@ -271,9 +271,9 @@ func (lb *LineBuffer) Next(min int) (next *Line) {
 	return
 }
 
-type LineSlice []*Line
+type lineSlice []*indentedLine
 
-func (ls *LineSlice) Next(min int) (next *Line) {
+func (ls *lineSlice) Next(min int) (next *indentedLine) {
 	if len(*ls) == 0 {
 		return nil
 	}
@@ -285,6 +285,6 @@ func (ls *LineSlice) Next(min int) (next *Line) {
 	return
 }
 
-func (ls *LineSlice) Push(line *Line) {
+func (ls *lineSlice) Push(line *indentedLine) {
 	*ls = append(*ls, line)
 }
