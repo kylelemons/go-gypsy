@@ -149,6 +149,10 @@
 // 
 //                  KEY = { alpha | digit }
 //               INDENT = { ' ' }
+//
+// Any line where the first non-space character is a sharp sign (#) is a comment.
+// It will be ignored.
+// Only full-line comments are allowed.
 package yaml
 
 // BUG(kevlar): Multi-line strings are currently not supported.
