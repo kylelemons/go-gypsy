@@ -23,7 +23,7 @@ config:
       password: f!r3m3
 `
 
-var configGetTests = []struct{
+var configGetTests = []struct {
 	Spec string
 	Want string
 	Err  string
@@ -54,8 +54,10 @@ func TestGet(t *testing.T) {
 		}
 
 		switch err {
-		case nil: got = ""
-		default: got = err.String()
+		case nil:
+			got = ""
+		default:
+			got = err.String()
 		}
 		if want := test.Err; got != want {
 			t.Errorf("Get(%q) error %#q, want %#q", test.Spec, got, want)

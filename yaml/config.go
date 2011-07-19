@@ -71,11 +71,11 @@ func (f *File) Get(spec string) (string, os.Error) {
 	scalar, ok := node.(Scalar)
 	if !ok {
 		return "", &NodeTypeMismatch{
-			Full: spec,
-			Spec: spec,
-			Token: "$",
+			Full:     spec,
+			Spec:     spec,
+			Token:    "$",
 			Expected: "yaml.Scalar",
-			Node: node,
+			Node:     node,
 		}
 	}
 	return scalar.String(), nil
@@ -127,7 +127,7 @@ func Child(root Node, spec string) (Node, os.Error) {
 		}
 
 		// Extract the next token
-		delim := 1+strings.IndexAny(s[1:], ".[")
+		delim := 1 + strings.IndexAny(s[1:], ".[")
 		if delim <= 0 {
 			delim = len(s)
 		}
@@ -139,16 +139,16 @@ func Child(root Node, spec string) (Node, os.Error) {
 			s, ok := n.(List)
 			if !ok {
 				return nil, &NodeTypeMismatch{
-					Node: n,
+					Node:     n,
 					Expected: "yaml.List",
-					Full: spec,
-					Spec: last,
-					Token: tok,
+					Full:     spec,
+					Spec:     last,
+					Token:    tok,
 				}
 			}
 
 			if tok[0] == '[' && tok[len(tok)-1] == ']' {
-				if num, err := strconv.Atoi(tok[1:len(tok)-1]); err == nil {
+				if num, err := strconv.Atoi(tok[1 : len(tok)-1]); err == nil {
 					if num >= 0 && num < len(s) {
 						return recur(s[num], last+tok, remain)
 					}
@@ -156,17 +156,17 @@ func Child(root Node, spec string) (Node, os.Error) {
 			}
 			return nil, &NodeNotFound{
 				Full: spec,
-				Spec: last+tok,
+				Spec: last + tok,
 			}
 		default:
 			m, ok := n.(Map)
 			if !ok {
 				return nil, &NodeTypeMismatch{
-					Node: n,
+					Node:     n,
 					Expected: "yaml.Map",
-					Full: spec,
-					Spec: last,
-					Token: tok,
+					Full:     spec,
+					Spec:     last,
+					Token:    tok,
 				}
 			}
 
@@ -188,10 +188,10 @@ func (e *NodeNotFound) String() string {
 }
 
 type NodeTypeMismatch struct {
-	Full string
-	Spec string
-	Token string
-	Node Node
+	Full     string
+	Spec     string
+	Token    string
+	Node     Node
 	Expected string
 }
 

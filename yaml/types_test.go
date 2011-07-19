@@ -9,7 +9,7 @@ var stringTests = []struct {
 	Expect string
 }{
 	{
-		Tree:   Scalar("test"),
+		Tree: Scalar("test"),
 		Expect: `test
 `,
 	},

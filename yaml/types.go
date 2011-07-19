@@ -38,8 +38,8 @@ func (node Map) write(out io.Writer, firstind, nextind int) {
 		}
 		objectkeys = append(objectkeys, key)
 	}
-	sort.SortStrings(scalarkeys)
-	sort.SortStrings(objectkeys)
+	sort.Strings(scalarkeys)
+	sort.Strings(objectkeys)
 
 	for _, key := range scalarkeys {
 		value := node[key].(Scalar)
@@ -91,7 +91,7 @@ func (node List) write(out io.Writer, firstind, nextind int) {
 type Scalar string
 
 // String returns the string represented by this Scalar.
-func (node Scalar) String() string    { return string(node) }
+func (node Scalar) String() string { return string(node) }
 
 func (node Scalar) write(out io.Writer, ind, _ int) {
 	fmt.Fprintf(out, "%s%s\n", strings.Repeat(" ", ind), string(node))
