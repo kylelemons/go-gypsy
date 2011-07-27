@@ -9,6 +9,8 @@ import (
 	"bytes"
 )
 
+// Parse returns a root-level Node parsed from the lines read from r.  In
+// general, this will be done for you by one of the File constructors.
 func Parse(r io.Reader) (node Node, err os.Error) {
 	lb := &lineBuffer{
 		Reader: bufio.NewReader(r),
