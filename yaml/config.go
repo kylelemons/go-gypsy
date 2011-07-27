@@ -81,6 +81,28 @@ func (f *File) Get(spec string) (string, os.Error) {
 	return scalar.String(), nil
 }
 
+// Count retrieves a the number of elements in the specified list from the file
+// using the same format as that expected by Child.  If the final node is not a
+// List, Count will return an error.
+func (f *File) Count(spec string) (int, os.Error) {
+	node, err := Child(f.Root, spec)
+	if err != nil {
+		return -1, err
+	}
+
+	lst, ok := node.(List)
+	if !ok {
+		return -1, &NodeTypeMismatch{
+			Full:     spec,
+			Spec:     spec,
+			Token:    "$",
+			Expected: "yaml.List",
+			Node:     node,
+		}
+	}
+	return lst.Len(), nil
+}
+
 // Require retrieves a scalar from the file specified by a string of the same
 // format as that expected by Child.  If the final node is not a Scalar, String
 // will panic.  This is a convenience function for use in initializers.
