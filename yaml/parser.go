@@ -208,7 +208,7 @@ func getType(line []byte) (typ, split int) {
 	} else {
 		for i := 0; i < len(line); i++ {
 			switch ch := line[i]; ch {
-			case ' ':
+			case ' ', '"':
 				typ = typScalar
 			case ':':
 				typ = typMapping

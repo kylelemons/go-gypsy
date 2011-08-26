@@ -136,6 +136,10 @@ var parseTests = []struct {
 			"  - san\n" +
 			"",
 	},
+	{
+		Input: `test: "localhost:8080"`,
+		Output: `test: "localhost:8080"`+"\n",
+	},
 }
 
 func TestParse(t *testing.T) {
