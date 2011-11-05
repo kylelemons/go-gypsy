@@ -17,7 +17,7 @@ type File struct {
 }
 
 // ReadFile reads a YAML configuration file from the given filename.
-func ReadFile(filename string) (*File, os.Error) {
+func ReadFile(filename string) (*File, error) {
 	fin, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func ReadFile(filename string) (*File, os.Error) {
 // found, it will panic.  This is a utility function and is intended for use in
 // initializers.
 func Config(yamlconf string) *File {
-	var err os.Error
+	var err error
 	buf := bytes.NewBufferString(yamlconf)
 
 	f := new(File)
@@ -62,7 +62,7 @@ func ConfigFile(filename string) *File {
 // Get retrieves a scalar from the file specified by a string of the same
 // format as that expected by Child.  If the final node is not a Scalar, Get
 // will return an error.
-func (f *File) Get(spec string) (string, os.Error) {
+func (f *File) Get(spec string) (string, error) {
 	node, err := Child(f.Root, spec)
 	if err != nil {
 		return "", err
@@ -84,7 +84,7 @@ func (f *File) Get(spec string) (string, os.Error) {
 // Count retrieves a the number of elements in the specified list from the file
 // using the same format as that expected by Child.  If the final node is not a
 // List, Count will return an error.
-func (f *File) Count(spec string) (int, os.Error) {
+func (f *File) Count(spec string) (int, error) {
 	node, err := Child(f.Root, spec)
 	if err != nil {
 		return -1, err
@@ -125,7 +125,7 @@ func (f *File) Require(spec string) string {
 // above format.  If a node along the evaluation path is not found, an error is
 // returned. If a node is not the proper type, an error is returned.  If the
 // final node is not a Scalar, an error is returned. 
-func Child(root Node, spec string) (Node, os.Error) {
+func Child(root Node, spec string) (Node, error) {
 	if len(spec) == 0 {
 		return root, nil
 	}
@@ -134,8 +134,8 @@ func Child(root Node, spec string) (Node, os.Error) {
 		spec = "." + spec
 	}
 
-	var recur func(Node, string, string) (Node, os.Error)
-	recur = func(n Node, last, s string) (Node, os.Error) {
+	var recur func(Node, string, string) (Node, error)
+	recur = func(n Node, last, s string) (Node, error) {
 
 		if len(s) == 0 {
 			return n, nil
@@ -205,7 +205,7 @@ type NodeNotFound struct {
 	Spec string
 }
 
-func (e *NodeNotFound) String() string {
+func (e *NodeNotFound) Error() string {
 	return fmt.Sprintf("yaml: %s: %q not found", e.Full, e.Spec)
 }
 
@@ -217,7 +217,7 @@ type NodeTypeMismatch struct {
 	Expected string
 }
 
-func (e *NodeTypeMismatch) String() string {
+func (e *NodeTypeMismatch) Error() string {
 	return fmt.Sprintf("yaml: %s: type mismatch: %q is %T, want %s (at %q)",
 		e.Full, e.Spec, e.Node, e.Expected, e.Token)
 }

@@ -57,7 +57,7 @@ func TestGet(t *testing.T) {
 		case nil:
 			got = ""
 		default:
-			got = err.String()
+			got = err.Error()
 		}
 		if want := test.Err; got != want {
 			t.Errorf("Get(%q) error %#q, want %#q", test.Spec, got, want)

@@ -2,16 +2,16 @@ package yaml
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"bytes"
 )
 
 // Parse returns a root-level Node parsed from the lines read from r.  In
 // general, this will be done for you by one of the File constructors.
-func Parse(r io.Reader) (node Node, err os.Error) {
+func Parse(r io.Reader) (node Node, err error) {
 	lb := &lineBuffer{
 		Reader: bufio.NewReader(r),
 	}
@@ -19,10 +19,10 @@ func Parse(r io.Reader) (node Node, err os.Error) {
 	defer func() {
 		if r := recover(); r != nil {
 			switch r := r.(type) {
-			case os.Error:
+			case error:
 				err = r
 			case string:
-				err = os.NewError(r)
+				err = errors.New(r)
 			default:
 				err = fmt.Errorf("%v", r)
 			}
@@ -236,7 +236,7 @@ func (lb *lineBuffer) Next(min int) (next *indentedLine) {
 		var (
 			read []byte
 			more bool
-			err  os.Error
+			err  error
 		)
 
 		l := new(indentedLine)
@@ -245,7 +245,7 @@ func (lb *lineBuffer) Next(min int) (next *indentedLine) {
 		for more {
 			read, more, err = lb.ReadLine()
 			if err != nil {
-				if err == os.EOF {
+				if err == io.EOF {
 					return nil
 				}
 				panic(err)
