@@ -2,11 +2,11 @@ package yaml
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"strings"
-	"bytes"
 )
 
 // Parse returns a root-level Node parsed from the lines read from r.  In

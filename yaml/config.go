@@ -22,6 +22,7 @@ func ReadFile(filename string) (*File, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer fin.Close()
 
 	f := new(File)
 	f.Root, err = Parse(fin)

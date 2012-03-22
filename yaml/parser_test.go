@@ -1,8 +1,8 @@
 package yaml
 
 import (
-	"testing"
 	"bytes"
+	"testing"
 )
 
 var parseTests = []struct {
@@ -137,8 +137,8 @@ var parseTests = []struct {
 			"",
 	},
 	{
-		Input: `test: "localhost:8080"`,
-		Output: `test: "localhost:8080"`+"\n",
+		Input:  `test: "localhost:8080"`,
+		Output: `test: "localhost:8080"` + "\n",
 	},
 }
 
