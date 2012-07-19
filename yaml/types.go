@@ -69,7 +69,7 @@ func (node List) Len() int {
 
 // Get the idx'th item from the List.
 func (node List) Item(idx int) Node {
-	if idx < 0 || idx > len(node) {
+	if idx >= 0 && idx < len(node) {
 		return node[idx]
 	}
 	return nil
