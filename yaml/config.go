@@ -69,6 +69,13 @@ func (f *File) Get(spec string) (string, error) {
 		return "", err
 	}
 
+	if node == nil {
+		return "", &NodeNotFound{
+			Full: spec,
+			Spec: spec,
+		}
+	}
+
 	scalar, ok := node.(Scalar)
 	if !ok {
 		return "", &NodeTypeMismatch{
@@ -89,6 +96,13 @@ func (f *File) Count(spec string) (int, error) {
 	node, err := Child(f.Root, spec)
 	if err != nil {
 		return -1, err
+	}
+
+	if node == nil {
+		return -1, &NodeNotFound{
+			Full: spec,
+			Spec: spec,
+		}
 	}
 
 	lst, ok := node.(List)
