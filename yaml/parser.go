@@ -208,8 +208,9 @@ func getType(line []byte) (typ, split int) {
 		return
 	}
 
+	typ = typScalar
+
 	if line[0] == ' ' || line[0] == '"' {
-		typ = typScalar
 		return
 	}
 
@@ -220,38 +221,38 @@ func getType(line []byte) (typ, split int) {
 	
 	idx := bytes.IndexAny( line, " \":" )
 	if idx < 0 {
-		typ = typScalar
 		return
 	}
 
 	if line[idx] == '"' {
-		typ = typScalar
 		return
 	}
 
 	if line[idx] == ':' {
 		typ = typMapping
 		split = idx
-		return
-	}
-
-	// we have a space
-	// need to see if its all spaces until a :
-	for i := idx; i < len(line); i++ {
-		switch ch := line[i]; ch {
-		case ' ':
-			continue
-		case ':':
-			typ = typMapping
-			split = i
-			return
-		default:
-			typ = typScalar
-			return 
+	} else if line[idx] == ' ' {
+		// we have a space
+		// need to see if its all spaces until a :
+		for i := idx; i < len(line); i++ {
+			switch ch := line[i]; ch {
+			case ' ':
+				continue
+			case ':':
+				typ = typMapping
+				split = i
+				break
+			default:
+				break
+			}
 		}
 	}
 
-	typ = typScalar
+	if typ == typMapping && split + 1 < len(line) && line[split+1] != ' ' {
+		typ = typScalar
+		split = 0
+	}
+	
 	return
 }
 
