@@ -102,7 +102,7 @@ func parseNode(r lineReader, ind int, initial Node) (node Node) {
 				return
 			case typMapping:
 				types = append(types, typMapping)
-				pieces = append(pieces, string(begin))
+				pieces = append(pieces, strings.TrimSpace(string(begin)))
 				inlineValue(end)
 			case typSequence:
 				types = append(types, typSequence)
@@ -201,24 +201,56 @@ func getType(line []byte) (typ, split int) {
 	if len(line) == 0 {
 		return
 	}
+
 	if line[0] == '-' {
 		typ = typSequence
 		split = 1
 		return
-	} else {
-		for i := 0; i < len(line); i++ {
-			switch ch := line[i]; ch {
-			case ' ', '"':
-				typ = typScalar
-			case ':':
-				typ = typMapping
-				split = i
-			default:
-				continue
-			}
+	}
+
+	if line[0] == ' ' || line[0] == '"' {
+		typ = typScalar
+		return
+	}
+
+	// the first character is real
+	// need to iterate past the first word
+	// things like "foo:" and "foo :" are mappings
+	// everything else is a scalar
+	
+	idx := bytes.IndexAny( line, " \":" )
+	if idx < 0 {
+		typ = typScalar
+		return
+	}
+
+	if line[idx] == '"' {
+		typ = typScalar
+		return
+	}
+
+	if line[idx] == ':' {
+		typ = typMapping
+		split = idx
+		return
+	}
+
+	// we have a space
+	// need to see if its all spaces until a :
+	for i := idx; i < len(line); i++ {
+		switch ch := line[i]; ch {
+		case ' ':
+			continue
+		case ':':
+			typ = typMapping
+			split = i
 			return
+		default:
+			typ = typScalar
+			return 
 		}
 	}
+
 	typ = typScalar
 	return
 }
