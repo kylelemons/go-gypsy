@@ -103,6 +103,29 @@ func parseNode(r lineReader, ind int, initial Node) (node Node) {
 			case typMapping:
 				types = append(types, typMapping)
 				pieces = append(pieces, strings.TrimSpace(string(begin)))
+
+				trimmed := bytes.TrimSpace(end)
+				if len(trimmed) == 1 && trimmed[0] == '|' {
+					text := ""
+					
+					for {
+						l := r.Next(1)
+						if l == nil {
+							break
+						}
+						
+						s := string(l.line)
+						s = strings.TrimSpace( s )
+						if len(s) == 0 {
+							break
+						}
+						text = text + "\n" + s
+					}
+					
+					types = append(types, typScalar)
+					pieces = append(pieces, string(text))						
+					return
+				}
 				inlineValue(end)
 			case typSequence:
 				types = append(types, typSequence)
