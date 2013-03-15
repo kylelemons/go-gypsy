@@ -89,6 +89,36 @@ func (f *File) Get(spec string) (string, error) {
 	return scalar.String(), nil
 }
 
+func (f *File) GetInt(spec string) (int64, error) {
+	s, err := f.Get( spec )
+	if err != nil {
+		return 0,err
+	}
+
+	i, err := strconv.ParseInt( s, 10, 64 )
+	if err != nil {
+		return 0, err
+	}
+	
+	return i,nil
+}
+
+func (f *File) GetBool(spec string) (bool, error) {
+	s, err := f.Get( spec )
+	if err != nil {
+		return false,err
+	}
+
+	b, err := strconv.ParseBool( s )
+	if err != nil {
+		return false, err
+	}
+	
+	return b,nil
+}
+
+
+
 // Count retrieves a the number of elements in the specified list from the file
 // using the same format as that expected by Child.  If the final node is not a
 // List, Count will return an error.
