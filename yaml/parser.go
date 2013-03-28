@@ -211,6 +211,11 @@ func getType(line []byte) (typ, split int) {
 			case ' ', '"':
 				typ = typScalar
 			case ':':
+				// only split on colons followed by a space
+				if i+1 < len(line) && line[i+1] != ' ' {
+					continue
+				}
+
 				typ = typMapping
 				split = i
 			default:
