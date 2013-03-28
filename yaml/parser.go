@@ -102,7 +102,30 @@ func parseNode(r lineReader, ind int, initial Node) (node Node) {
 				return
 			case typMapping:
 				types = append(types, typMapping)
-				pieces = append(pieces, string(begin))
+				pieces = append(pieces, strings.TrimSpace(string(begin)))
+
+				trimmed := bytes.TrimSpace(end)
+				if len(trimmed) == 1 && trimmed[0] == '|' {
+					text := ""
+					
+					for {
+						l := r.Next(1)
+						if l == nil {
+							break
+						}
+						
+						s := string(l.line)
+						s = strings.TrimSpace( s )
+						if len(s) == 0 {
+							break
+						}
+						text = text + "\n" + s
+					}
+					
+					types = append(types, typScalar)
+					pieces = append(pieces, string(text))						
+					return
+				}
 				inlineValue(end)
 			case typSequence:
 				types = append(types, typSequence)
@@ -201,15 +224,43 @@ func getType(line []byte) (typ, split int) {
 	if len(line) == 0 {
 		return
 	}
+
 	if line[0] == '-' {
 		typ = typSequence
 		split = 1
 		return
-	} else {
-		for i := 0; i < len(line); i++ {
+	}
+
+	typ = typScalar
+
+	if line[0] == ' ' || line[0] == '"' {
+		return
+	}
+
+	// the first character is real
+	// need to iterate past the first word
+	// things like "foo:" and "foo :" are mappings
+	// everything else is a scalar
+	
+	idx := bytes.IndexAny( line, " \":" )
+	if idx < 0 {
+		return
+	}
+
+	if line[idx] == '"' {
+		return
+	}
+
+	if line[idx] == ':' {
+		typ = typMapping
+		split = idx
+	} else if line[idx] == ' ' {
+		// we have a space
+		// need to see if its all spaces until a :
+		for i := idx; i < len(line); i++ {
 			switch ch := line[i]; ch {
-			case ' ', '"':
-				typ = typScalar
+			case ' ':
+				continue
 			case ':':
 				// only split on colons followed by a space
 				if i+1 < len(line) && line[i+1] != ' ' {
@@ -218,13 +269,18 @@ func getType(line []byte) (typ, split int) {
 
 				typ = typMapping
 				split = i
+				break
 			default:
-				continue
+				break
 			}
-			return
 		}
 	}
-	typ = typScalar
+
+	if typ == typMapping && split + 1 < len(line) && line[split+1] != ' ' {
+		typ = typScalar
+		split = 0
+	}
+	
 	return
 }
 

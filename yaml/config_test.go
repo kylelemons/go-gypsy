@@ -8,6 +8,9 @@ var dummyConfigFile = `
 mapping:
   key1: value1
   key2: value2
+  key3: 5
+  key4: true
+  key5: false
 list:
   - item1
   - item2
@@ -63,4 +66,20 @@ func TestGet(t *testing.T) {
 			t.Errorf("Get(%q) error %#q, want %#q", test.Spec, got, want)
 		}
 	}
+
+	i, err := config.GetInt( "mapping.key3" )
+	if err != nil || i != 5 {
+		t.Errorf("GetInt mapping.key3 wrong" )
+	}
+
+	b, err := config.GetBool( "mapping.key4" )
+	if err != nil || b != true  {
+		t.Errorf("GetBool mapping.key4 wrong" )
+	}
+
+	b, err = config.GetBool( "mapping.key5" )
+	if err != nil || b != false  {
+		t.Errorf("GetBool mapping.key5 wrong" )
+	}
+
 }

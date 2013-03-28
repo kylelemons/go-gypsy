@@ -2,6 +2,7 @@ package yaml
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -12,6 +13,18 @@ var parseTests = []struct {
 	{
 		Input:  "key1: val1\n",
 		Output: "key1: val1\n",
+	},
+	{
+		Input:  "key2 : val1\n",
+		Output: "key2: val1\n",
+	},
+	{
+		Input:  "key3:val1\n",
+		Output: "key3:val1\n",
+	},
+	{
+		Input:  "key4 :val1\n",
+		Output: "key4 :val1\n",
 	},
 	{
 		Input: "key: nest: val\n",
@@ -186,6 +199,21 @@ func TestGetType(t *testing.T) {
 			want0, want1 := test.Value[:want], test.Value[want:]
 			t.Errorf("%d. split is %s|%s, want %s|%s", idx,
 				got0, got1, want0, want1)
+		}
+	}
+}
+
+func Test_MultiLineString(t *testing.T) {
+	buf := bytes.NewBufferString( "a : |\n  a\n  b\n\nc : d" )
+	node, err := Parse( buf )
+	if err != nil {
+		t.Error( err )
+	} else {
+		m := node.(Map)
+		v := m["a"].(Scalar)
+		v2 := strings.TrimSpace( string(v) )
+		if v2 != "a\nb" {
+			t.Errorf( "multi line parsed wrong thing: %v", v )
 		}
 	}
 }
