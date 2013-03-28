@@ -107,23 +107,23 @@ func parseNode(r lineReader, ind int, initial Node) (node Node) {
 				trimmed := bytes.TrimSpace(end)
 				if len(trimmed) == 1 && trimmed[0] == '|' {
 					text := ""
-					
+
 					for {
 						l := r.Next(1)
 						if l == nil {
 							break
 						}
-						
+
 						s := string(l.line)
-						s = strings.TrimSpace( s )
+						s = strings.TrimSpace(s)
 						if len(s) == 0 {
 							break
 						}
 						text = text + "\n" + s
 					}
-					
+
 					types = append(types, typScalar)
-					pieces = append(pieces, string(text))						
+					pieces = append(pieces, string(text))
 					return
 				}
 				inlineValue(end)
@@ -241,8 +241,8 @@ func getType(line []byte) (typ, split int) {
 	// need to iterate past the first word
 	// things like "foo:" and "foo :" are mappings
 	// everything else is a scalar
-	
-	idx := bytes.IndexAny( line, " \":" )
+
+	idx := bytes.IndexAny(line, " \":")
 	if idx < 0 {
 		return
 	}
@@ -276,11 +276,11 @@ func getType(line []byte) (typ, split int) {
 		}
 	}
 
-	if typ == typMapping && split + 1 < len(line) && line[split+1] != ' ' {
+	if typ == typMapping && split+1 < len(line) && line[split+1] != ' ' {
 		typ = typScalar
 		split = 0
 	}
-	
+
 	return
 }
 

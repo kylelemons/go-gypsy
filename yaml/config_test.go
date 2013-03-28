@@ -67,19 +67,19 @@ func TestGet(t *testing.T) {
 		}
 	}
 
-	i, err := config.GetInt( "mapping.key3" )
+	i, err := config.GetInt("mapping.key3")
 	if err != nil || i != 5 {
-		t.Errorf("GetInt mapping.key3 wrong" )
+		t.Errorf("GetInt mapping.key3 wrong")
 	}
 
-	b, err := config.GetBool( "mapping.key4" )
-	if err != nil || b != true  {
-		t.Errorf("GetBool mapping.key4 wrong" )
+	b, err := config.GetBool("mapping.key4")
+	if err != nil || b != true {
+		t.Errorf("GetBool mapping.key4 wrong")
 	}
 
-	b, err = config.GetBool( "mapping.key5" )
-	if err != nil || b != false  {
-		t.Errorf("GetBool mapping.key5 wrong" )
+	b, err = config.GetBool("mapping.key5")
+	if err != nil || b != false {
+		t.Errorf("GetBool mapping.key5 wrong")
 	}
 
 }

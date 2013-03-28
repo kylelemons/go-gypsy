@@ -204,16 +204,16 @@ func TestGetType(t *testing.T) {
 }
 
 func Test_MultiLineString(t *testing.T) {
-	buf := bytes.NewBufferString( "a : |\n  a\n  b\n\nc : d" )
-	node, err := Parse( buf )
+	buf := bytes.NewBufferString("a : |\n  a\n  b\n\nc : d")
+	node, err := Parse(buf)
 	if err != nil {
-		t.Error( err )
+		t.Error(err)
 	} else {
 		m := node.(Map)
 		v := m["a"].(Scalar)
-		v2 := strings.TrimSpace( string(v) )
+		v2 := strings.TrimSpace(string(v))
 		if v2 != "a\nb" {
-			t.Errorf( "multi line parsed wrong thing: %v", v )
+			t.Errorf("multi line parsed wrong thing: %v", v)
 		}
 	}
 }

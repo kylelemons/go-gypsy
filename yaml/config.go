@@ -90,34 +90,32 @@ func (f *File) Get(spec string) (string, error) {
 }
 
 func (f *File) GetInt(spec string) (int64, error) {
-	s, err := f.Get( spec )
-	if err != nil {
-		return 0,err
-	}
-
-	i, err := strconv.ParseInt( s, 10, 64 )
+	s, err := f.Get(spec)
 	if err != nil {
 		return 0, err
 	}
-	
-	return i,nil
+
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return i, nil
 }
 
 func (f *File) GetBool(spec string) (bool, error) {
-	s, err := f.Get( spec )
-	if err != nil {
-		return false,err
-	}
-
-	b, err := strconv.ParseBool( s )
+	s, err := f.Get(spec)
 	if err != nil {
 		return false, err
 	}
-	
-	return b,nil
+
+	b, err := strconv.ParseBool(s)
+	if err != nil {
+		return false, err
+	}
+
+	return b, nil
 }
-
-
 
 // Count retrieves a the number of elements in the specified list from the file
 // using the same format as that expected by Child.  If the final node is not a
@@ -169,7 +167,7 @@ func (f *File) Require(spec string) string {
 // The node tree is walked from the given node, considering each token of the
 // above format.  If a node along the evaluation path is not found, an error is
 // returned. If a node is not the proper type, an error is returned.  If the
-// final node is not a Scalar, an error is returned. 
+// final node is not a Scalar, an error is returned.
 func Child(root Node, spec string) (Node, error) {
 	if len(spec) == 0 {
 		return root, nil
