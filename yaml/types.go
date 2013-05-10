@@ -97,9 +97,8 @@ func (node Scalar) String() string { return string(node) }
 func (node Scalar) write(out io.Writer, ind, _ int) {
 	s := string(node)
 	if strings.Contains(s, "\n") {
-		parts := strings.Split(s, "\n")
 		fmt.Fprint(out, "|\n")
-		for _, v := range parts {
+		for _, v := range strings.Split(s, "\n") {
 			fmt.Fprintf(out, "%s%s\n", strings.Repeat(" ", ind+2), v)
 		}
 	} else {
