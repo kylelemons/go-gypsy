@@ -222,4 +222,10 @@ func Test_MultiLineString(t *testing.T) {
 			t.Errorf("multi line parsed wrong thing:\nexpected: %q\ngot:      %q", e_value, parsed)
 		}
 	}
+
+	node = Map{"a": Scalar(a_value), "e": Scalar(e_value)}
+	rendered := Render(node)
+	if rendered != y_value {
+		t.Errorf("multi line rendered wrong thing:\nexpected: %q\ngot:      %q", y_value, rendered)
+	}
 }
