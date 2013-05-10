@@ -107,19 +107,18 @@ func parseNode(r lineReader, ind int, initial Node) (node Node) {
 				trimmed := bytes.TrimSpace(end)
 				if len(trimmed) == 1 && trimmed[0] == '|' {
 					text := ""
+					lastLine := -1
 
 					for {
 						l := r.Next(1)
 						if l == nil {
 							break
 						}
-
-						s := string(l.line)
-						s = strings.TrimSpace(s)
-						if len(s) == 0 {
-							break
+						if lastLine != -1 {
+							text += strings.Repeat("\n", l.lineno - lastLine)
 						}
-						text = text + "\n" + s
+						text += string(l.line)
+						lastLine = l.lineno
 					}
 
 					types = append(types, typScalar)
