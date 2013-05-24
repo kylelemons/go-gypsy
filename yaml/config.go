@@ -63,7 +63,8 @@ func ConfigFile(filename string) *File {
 // Get retrieves a scalar from the file specified by a string of the same
 // format as that expected by Child.  If the final node is not a Scalar, Get
 // will return an error.
-func (f *File) Get(spec string) (string, error) {
+func (f *File) Get(spec string, params ...interface{}) (string, error) {
+	spec = fmt.Sprintf(spec, params...)
 	node, err := Child(f.Root, spec)
 	if err != nil {
 		return "", err
@@ -89,7 +90,8 @@ func (f *File) Get(spec string) (string, error) {
 	return scalar.String(), nil
 }
 
-func (f *File) GetInt(spec string) (int64, error) {
+func (f *File) GetInt(spec string, params ...interface{}) (int64, error) {
+	spec = fmt.Sprintf(spec, params...)
 	s, err := f.Get(spec)
 	if err != nil {
 		return 0, err
@@ -103,7 +105,8 @@ func (f *File) GetInt(spec string) (int64, error) {
 	return i, nil
 }
 
-func (f *File) GetBool(spec string) (bool, error) {
+func (f *File) GetBool(spec string, params ...interface{}) (bool, error) {
+	spec = fmt.Sprintf(spec, params...)
 	s, err := f.Get(spec)
 	if err != nil {
 		return false, err
@@ -120,7 +123,8 @@ func (f *File) GetBool(spec string) (bool, error) {
 // Count retrieves a the number of elements in the specified list from the file
 // using the same format as that expected by Child.  If the final node is not a
 // List, Count will return an error.
-func (f *File) Count(spec string) (int, error) {
+func (f *File) Count(spec string, params ...interface{}) (int, error) {
+	spec = fmt.Sprintf(spec, params...)
 	node, err := Child(f.Root, spec)
 	if err != nil {
 		return -1, err
@@ -149,7 +153,8 @@ func (f *File) Count(spec string) (int, error) {
 // Require retrieves a scalar from the file specified by a string of the same
 // format as that expected by Child.  If the final node is not a Scalar, String
 // will panic.  This is a convenience function for use in initializers.
-func (f *File) Require(spec string) string {
+func (f *File) Require(spec string, params ...interface{}) string {
+	spec = fmt.Sprintf(spec, params...)
 	str, err := f.Get(spec)
 	if err != nil {
 		panic(err)
@@ -168,7 +173,8 @@ func (f *File) Require(spec string) string {
 // above format.  If a node along the evaluation path is not found, an error is
 // returned. If a node is not the proper type, an error is returned.  If the
 // final node is not a Scalar, an error is returned.
-func Child(root Node, spec string) (Node, error) {
+func Child(root Node, spec string, params ...interface{}) (Node, error) {
+	spec = fmt.Sprintf(spec, params...)
 	if len(spec) == 0 {
 		return root, nil
 	}
