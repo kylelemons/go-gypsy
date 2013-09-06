@@ -250,6 +250,12 @@ func Child(root Node, spec string) (Node, error) {
 			}
 
 			n, ok = m[tok[1:]]
+			if !ok {
+				return nil, &NodeNotFound{
+					Full: spec,
+					Spec: last + tok,
+				}
+			}
 			return recur(n, last+tok, remain)
 		}
 		panic("unreachable")
