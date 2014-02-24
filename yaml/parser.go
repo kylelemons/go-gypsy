@@ -90,6 +90,10 @@ func parseNode(r lineReader, ind int, initial Node) (node Node) {
 			continue
 		}
 
+		if first && string(line.line) == "---" {
+			continue
+		}
+
 		if first {
 			ind = line.indent
 			first = false
