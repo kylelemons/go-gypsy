@@ -41,6 +41,18 @@ var parseTests = []struct {
 		Output: "key4 :val1\n",
 	},
 	{
+		Input:  "key5: -val1\n",
+		Output: "key5: -val1\n",
+	},
+	{
+		Input:  "key7: -1\n",
+		Output: "key7: -1\n",
+	},
+	{
+		Input:  "key8: -3.14\n",
+		Output: "key8: -3.14\n",
+	},
+	{
 		Input: "key: nest: val\n",
 		Output: "key:\n" +
 			"  nest: val\n",

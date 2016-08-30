@@ -240,9 +240,11 @@ func getType(line []byte) (typ, split int) {
 	}
 
 	if line[0] == '-' {
-		typ = typSequence
-		split = 1
-		return
+		if len(line) == 1 || line[1] == ' ' {
+			typ = typSequence
+			split = 1
+			return
+		}
 	}
 
 	typ = typScalar
