@@ -58,7 +58,8 @@ func (node Map) write(out io.Writer, firstind, nextind int) {
 	for _, key := range scalarkeys {
 		value := node[key].(Scalar)
 		out.Write(indent[:ind])
-		fmt.Fprintf(out, "%-*s %s\n", width+1, key+":", string(value))
+		fmt.Fprintf(out, "%-*s ", width+1, key+":")
+		value.write(out, 0, 0)
 		ind = nextind
 	}
 	for _, key := range objectkeys {
@@ -108,7 +109,15 @@ type Scalar string
 func (node Scalar) String() string { return string(node) }
 
 func (node Scalar) write(out io.Writer, ind, _ int) {
-	fmt.Fprintf(out, "%s%s\n", strings.Repeat(" ", ind), string(node))
+	s := string(node)
+	if strings.Contains(s, "\n") {
+		fmt.Fprintf(out, "%s|\n", strings.Repeat(" ", ind))
+		for _, v := range strings.Split(s, "\n") {
+			fmt.Fprintf(out, "%s%s\n", strings.Repeat(" ", ind+2), v)
+		}
+	} else {
+		fmt.Fprintf(out, "%s%s\n", strings.Repeat(" ", ind), s)
+	}
 }
 
 // Render returns a string of the node as a YAML document.  Note that
