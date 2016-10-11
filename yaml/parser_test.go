@@ -16,7 +16,6 @@ package yaml
 
 import (
 	"bytes"
-	"strings"
 	"testing"
 )
 
@@ -218,16 +217,29 @@ func TestGetType(t *testing.T) {
 }
 
 func Test_MultiLineString(t *testing.T) {
-	buf := bytes.NewBufferString("a : |\n  a\n  b\n\nc : d")
+	y_value := "a: |\n  b\n  c\n  \n  d\ne: f\n"
+	a_value := "b\nc\n\nd"
+	e_value := "f"
+
+	buf := bytes.NewBufferString(y_value)
 	node, err := Parse(buf)
 	if err != nil {
 		t.Error(err)
 	} else {
 		m := node.(Map)
-		v := m["a"].(Scalar)
-		v2 := strings.TrimSpace(string(v))
-		if v2 != "a\nb" {
-			t.Errorf("multi line parsed wrong thing: %v", v)
+		parsed := string(m["a"].(Scalar))
+		if parsed != a_value {
+			t.Errorf("multi line parsed wrong thing:\nexpected: %q\ngot:      %q", a_value, parsed)
 		}
+		parsed = string(m["e"].(Scalar))
+		if parsed != e_value {
+			t.Errorf("multi line parsed wrong thing:\nexpected: %q\ngot:      %q", e_value, parsed)
+		}
+	}
+
+	node = Map{"a": Scalar(a_value), "e": Scalar(e_value)}
+	rendered := Render(node)
+	if rendered != y_value {
+		t.Errorf("multi line rendered wrong thing:\nexpected: %q\ngot:      %q", y_value, rendered)
 	}
 }
