@@ -240,7 +240,7 @@ func getType(line []byte) (typ, split int) {
 	}
 
 	if line[0] == '-' {
-		if line[1] == '-' && line[2] == '-' {
+		if len(line) == 3 && line[1] == '-' && line[2] == '-' {
 			// Ignore document separators "---"
 			// http://yaml.org/spec/1.0/#syntax-stream-doc
 			return
