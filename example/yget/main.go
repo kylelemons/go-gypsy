@@ -20,7 +20,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/forkedagain/go-gypsy/yaml"
+	"github.com/kylelemons/go-gypsy/yaml"
 )
 
 var (

@@ -1,3 +1,3 @@
-module github.com/forkedagain/go-gypsy
+module github.com/kylelemons/go-gypsy
 
 go 1.5

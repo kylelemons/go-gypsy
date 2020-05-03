@@ -4,7 +4,7 @@ Gypsy is a simplified YAML parser written in Go. It is intended to be used as a 
 
 ## Documentation
 
-go-gypsy documentation is available [here](https://pkg.go.dev/github.com/forkedagain/go-gypsy/yaml)
+go-gypsy documentation is available [here](https://pkg.go.dev/github.com/kylelemons/go-gypsy/yaml)
 
 ## License
 
@@ -18,4 +18,4 @@ You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
-See the [License](https://github.com/forkedagain/go-gypsy/blob/master/LICENSE) for the specific language governing permissions and limitations under the License.
+See the [License](https://github.com/kylelemons/go-gypsy/blob/master/LICENSE) for the specific language governing permissions and limitations under the License.
