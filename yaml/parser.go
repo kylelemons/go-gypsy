@@ -168,6 +168,10 @@ func parseNode(r lineReader, ind int, initial Node) (node Node) {
 				if _, ok := current.(Scalar); current != nil && !ok {
 					panic("cannot append scalar to non-scalar node")
 				}
+				// if piece is in double quote, then remove double quote
+				if len(piece) > 1 && piece[0] == '"' && piece[len(piece)-1] == '"'{
+					piece = piece[1:len(piece)-1]
+				}
 				if current != nil {
 					current = Scalar(piece) + " " + current.(Scalar)
 					break
@@ -341,7 +345,7 @@ func (lb *lineBuffer) Next(min int) (next *indentedLine) {
 		l.line = l.line[l.indent:]
 
 		// Ignore blank lines and comments.
-		if len(l.line) == 0 || l.line[0] == '#' {
+		if len(l.line) == 0 || l.line[0] == '#' || string(l.line) == "---" || string(l.line) == "..."{
 			return lb.Next(min)
 		}
 
