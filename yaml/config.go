@@ -227,7 +227,29 @@ func Child(root Node, spec string) (Node, error) {
 			}
 
 			if tok[0] == '[' && tok[len(tok)-1] == ']' {
-				if num, err := strconv.Atoi(tok[1 : len(tok)-1]); err == nil {
+				kv := strings.Split(tok[1 : len(tok)-1], "=")
+				if len(kv) == 2 {
+					key := kv[0]
+					val := kv[1]
+					for _, r := range s {
+						mr, ok := r.(Map)
+						if !ok {
+							return nil, &NodeTypeMismatch{
+								Node:     n,
+								Expected: "yaml.Map",
+								Full:     spec,
+								Spec:     last,
+								Token:    tok,
+							}
+						}
+						_, ok = mr[key]
+						if ok {
+							if mr[key].(Scalar).String() == val {
+								return recur(r, last+tok, remain)
+							}
+						}
+					}
+				} else if num, err := strconv.Atoi(tok[1 : len(tok)-1]); err == nil {
 					if num >= 0 && num < len(s) {
 						return recur(s[num], last+tok, remain)
 					}

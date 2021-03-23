@@ -59,6 +59,7 @@ var configGetTests = []struct {
 	{"config.admin[0].username", "god", ""},
 	{"config.admin[1].username", "lowly", ""},
 	{"config.admin[2].username", "", `yaml: .config.admin[2].username: ".config.admin[2]" not found`},
+	{ "config.admin[username=lowly].password", "f!r3m3", ""},
 }
 
 func TestGet(t *testing.T) {
