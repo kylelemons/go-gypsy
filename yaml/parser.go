@@ -98,7 +98,7 @@ func parseNode(r lineReader, ind int, initial Node) (node Node) {
 			switch vtyp {
 			case typScalar:
 				types = append(types, typScalar)
-				pieces = append(pieces, string(end))
+				pieces = append(pieces, maybeRemoveQuotes(string(end)))
 				return
 			case typMapping:
 				types = append(types, typMapping)
@@ -195,6 +195,17 @@ func parseNode(r lineReader, ind int, initial Node) (node Node) {
 		node = prev
 	}
 	return
+}
+
+func maybeRemoveQuotes(s string) string {
+	for _, c := range []uint8{'\'', '"'} {
+		if s[0] == c && s[len(s)-1] == c {
+			s = s[1 : len(s)-1]
+			break
+		}
+	}
+
+	return s
 }
 
 func getType(line []byte) (typ, split int) {

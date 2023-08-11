@@ -3,6 +3,7 @@ package yaml
 import (
 	"bytes"
 	"testing"
+	"strconv"
 )
 
 var parseTests = []struct {
@@ -138,22 +139,32 @@ var parseTests = []struct {
 	},
 	{
 		Input:  `test: "localhost:8080"`,
-		Output: `test: "localhost:8080"` + "\n",
+		Output: `test: localhost:8080` + "\n",
+	},
+	{
+		Input:  "key1: \"val1\"\n",
+		Output: "key1: val1\n",
+	},
+	{
+		Input:  "key1: 'val1'\n",
+		Output: "key1: val1\n",
 	},
 }
 
 func TestParse(t *testing.T) {
 	for idx, test := range parseTests {
-		buf := bytes.NewBufferString(test.Input)
-		node, err := Parse(buf)
-		if err != nil {
-			t.Errorf("parse: %s", err)
-		}
-		if got, want := Render(node), test.Output; got != want {
-			t.Errorf("---%d---", idx)
-			t.Errorf("got: %q:\n%s", got, got)
-			t.Errorf("want: %q:\n%s", want, want)
-		}
+		t.Run(strconv.Itoa(idx), func(t *testing.T) {
+			buf := bytes.NewBufferString(test.Input)
+			node, err := Parse(buf)
+			if err != nil {
+				t.Errorf("parse: %s", err)
+			}
+			if got, want := Render(node), test.Output; got != want {
+				t.Errorf("---%d---", idx)
+				t.Errorf("got: %q:\n%s", got, got)
+				t.Errorf("want: %q:\n%s", want, want)
+			}
+		})
 	}
 }
 
